@@ -1,0 +1,1887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GPA Calculator - UofK Dentistry</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh; 
+      padding: 20px; 
+      color: #333333; 
+    }
+    .container { 
+      max-width: 1200px; 
+      margin: 0 auto; 
+      background: white; 
+      border-radius: 16px; 
+      padding: 40px; 
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); 
+    }
+    .header { 
+      text-align: center; 
+      margin-bottom: 30px; 
+      padding-bottom: 20px; 
+      border-bottom: 1px solid #e0e0e0; 
+    }
+    .header h1 { 
+      color: #2c3e50; 
+      font-size: 2.2rem; 
+      font-weight: 700; 
+      margin-bottom: 5px; 
+    }
+    .header h2 { 
+      color: #7f8c8d; 
+      font-size: 1.1rem; 
+      font-weight: 500; 
+      margin-bottom: 5px; 
+    }
+    .header p { 
+      color: #95a5a6; 
+      font-size: 0.8rem; 
+    }
+
+    /* Progress Indicator */
+    .progress-container {
+      margin-bottom: 40px;
+    }
+    .progress-steps {
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .progress-steps::before {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: #e0e0e0;
+      z-index: 0;
+    }
+    .progress-line {
+      position: absolute;
+      top: 20px;
+      left: 0;
+      height: 3px;
+      background: #3498db;
+      z-index: 1;
+      transition: width 0.4s ease;
+    }
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+      flex: 1;
+    }
+    .step-circle {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: white;
+      border: 3px solid #e0e0e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: #95a5a6;
+      margin-bottom: 8px;
+      transition: all 0.3s ease;
+    }
+    .step.active .step-circle {
+      border-color: #3498db;
+      background: #3498db;
+      color: white;
+      transform: scale(1.1);
+    }
+    .step.completed .step-circle {
+      border-color: #2ecc71;
+      background: #2ecc71;
+      color: white;
+    }
+    .step-label {
+      font-size: 0.75rem;
+      color: #95a5a6;
+      font-weight: 600;
+      text-align: center;
+    }
+    .step.active .step-label {
+      color: #3498db;
+    }
+    .step.completed .step-label {
+      color: #2ecc71;
+    }
+
+    /* Step Content */
+    .step-content {
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+    .step-content.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .step-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 10px;
+    }
+    .step-description {
+      font-size: 0.95rem;
+      color: #7f8c8d;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    /* Grading System Info */
+    .grading-system-info {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      border-left: 4px solid #f39c12;
+      padding: 12px;
+      border-radius: 6px;
+      margin: 15px 0;
+      font-size: 0.85rem;
+    }
+    .grading-system-info h4 {
+      color: #d35400;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+    }
+    .grading-table {
+      font-size: 0.75rem;
+      margin-top: 10px;
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .grading-table th, .grading-table td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    .grading-table th {
+      background: #f8f9fa;
+      font-weight: 600;
+    }
+
+    /* Help Section */
+    .help-section {
+      margin-bottom:20px;
+      background:#f8f9fa;
+      padding:15px;
+      border-radius:8px;
+      border:1px solid #e0e0e0;
+    }
+
+    /* CGPA Section */
+    .cgpa-section {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+    }
+    .cgpa-input {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .cgpa-input label {
+      font-weight: 600;
+      color: #2c3e50;
+    }
+    .cgpa-input input {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      width: 80px;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+    .stat-card {
+      background: #f8f9fa;
+      border: 1px solid #e0e0e0;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .stat-card h3 {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #7f8c8d;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+    .stat-card .value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #2c3e50;
+    }
+
+    /* Controls Section */
+    .controls-section {
+      margin-bottom: 20px;
+    }
+    .import-export {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .file-input {
+      display: none;
+    }
+    .file-label, .control-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 8px 12px;
+      background: #ecf0f1;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #2c3e50;
+      transition: all 0.3s ease;
+    }
+    .file-label:hover, .control-btn:hover {
+      background: #dfe6e9;
+      transform: translateY(-2px);
+    }
+    .file-label.danger {
+      background: #ffecec;
+      border-color: #ffd1d1;
+      color: #e74c3c;
+    }
+    .file-label.danger:hover {
+      background: #ffdfdf;
+    }
+
+    /* Table Styles */
+    .table-container {
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid #e0e0e0;
+      margin-bottom: 20px;
+      background: white;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th {
+      background: #f8f9fa;
+      color: #2c3e50;
+      padding: 12px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 0.8rem;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    td {
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      background: white;
+      color: #333;
+      transition: border-color 0.3s ease;
+    }
+    input[type="text"]:focus, input[type="number"]:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+    }
+
+    /* Grade Display Colors */
+    .points, .total-points {
+      font-weight: 600;
+      color: #3498db;
+      font-size: 0.8rem;
+    }
+    .grade-display {
+      display: inline-block;
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .grade-a\+ { background: #d1f2eb; color: #117864; }
+    .grade-a { background: #e8f5e9; color: #2e7d32; }
+    .grade-b\+ { background: #e1f5fe; color: #0277bd; }
+    .grade-b { background: #e3f2fd; color: #1565c0; }
+    .grade-c { background: #fff3e0; color: #e65100; }
+    .grade-d { background: #fff8e1; color: #ff8f00; }
+    .grade-f { background: #ffebee; color: #c62828; }
+
+    /* Buttons */
+    .button-container {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    button {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .btn-primary {
+      background: #3498db;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #2980b9;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+    }
+    .btn-secondary {
+      background: #9b59b6;
+      color: white;
+    }
+    .btn-secondary:hover {
+      background: #8e44ad;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(155, 89, 182, 0.4);
+    }
+    .btn-tertiary {
+      background: #2ecc71;
+      color: white;
+    }
+    .btn-tertiary:hover {
+      background: #27ae60;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4);
+    }
+    .delete-btn {
+      background: #e74c3c;
+      color: white;
+      border-radius: 4px;
+      width: 28px;
+      height: 28px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+    }
+    .delete-btn:hover {
+      background: #c0392b;
+    }
+
+    /* Result Section */
+    .result-section {
+      background: #f8f9fa;
+      border: 1px solid #e0e0e0;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      margin-top: 20px;
+    }
+    .result-section h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 15px;
+    }
+    .gpa-display {
+      font-size: 3rem;
+      font-weight: 700;
+      color: #3498db;
+      margin: 10px 0;
+    }
+    .combined-gpa {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #2c3e50;
+      margin: 15px 0;
+    }
+    .result-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .result-stat {
+      background: white;
+      border: 1px solid #e0e0e0;
+      padding: 12px;
+      border-radius: 4px;
+    }
+    .result-stat-label {
+      font-size: 0.7rem;
+      color: #7f8c8d;
+      margin-bottom: 5px;
+    }
+    .result-stat-value {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.7);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      border-radius: 8px;
+      width: 80%;
+      max-width: 500px;
+      position: relative;
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .close:hover, .close:focus {
+      color: black;
+      text-decoration: none;
+    }
+
+    /* Step Navigation Buttons */
+    .button-group {
+      display: flex;
+      gap: 15px;
+      justify-content: space-between;
+      margin-top: 30px;
+    }
+
+    /* Info Box */
+    .info-box {
+      background: #e8f4fd;
+      border-left: 4px solid #3498db;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #2ecc71;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      font-weight: 600;
+      z-index: 2000;
+      display: none;
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translate(-50%, 20px); opacity: 0; }
+      to { transform: translate(-50%, 0); opacity: 1; }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .container { padding: 20px; }
+      .header h1 { font-size: 1.8rem; }
+      .cgpa-section { flex-direction: column; }
+      .button-container, .button-group { flex-direction: column; }
+      button { width: 100%; }
+      .step-label { font-size: 0.65rem; }
+      .step-circle { width: 36px; height: 36px; font-size: 0.9rem; }
+    }
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      #subjectTable td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #7f8c8d;
+        margin-right: auto;
+        padding-right: 10px;
+      }
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Strategic GPA Calculator</h1>
+      <h2>University of Khartoum - Faculty of Dentistry</h2>
+      <h2>Grading System with 0.04 Discontinuity</h2>
+      <h3>Created By Khalid Omer B49</h3>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div class="progress-container">
+      <div class="progress-steps">
+        <div class="progress-line" id="progressLine"></div>
+        <div class="step active" data-step="1">
+          <div class="step-circle">1</div>
+          <div class="step-label">Previous Semesters</div>
+        </div>
+        <div class="step" data-step="2">
+          <div class="step-circle">2</div>
+          <div class="step-label">Current Semester</div>
+        </div>
+        <div class="step" data-step="3">
+          <div class="step-circle">3</div>
+          <div class="step-label">Results</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 1: Previous Semesters -->
+    <div class="step-content active" id="step1">
+      <h2 class="step-title">📚 Step 1: Enter Your Previous Semesters</h2>
+      <p class="step-description">
+        Add all your completed semesters to calculate your current CGPA. This will be your academic baseline.
+      </p>
+
+      <div class="grading-system-info">
+        <h4>📊 New Grading System:</h4>
+        <p><strong>System Note:</strong> GPA decreases by 0.04 per 1 grade decrease.</p>
+        
+        <table class="grading-table">
+          <thead>
+            <tr>
+              <th>Grade Range</th>
+              <th>GPA Range</th>
+              <th>Letter Grade</th>
+              <th>Key Examples</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="background-color: #d1f2eb;">
+              <td>100 - 90</td>
+              <td>4.00 - 3.60</td>
+              <td>A+</td>
+              <td>100=4.00, 95=3.80, 90=3.60</td>
+            </tr>
+            <tr style="background-color: #e8f5e9;">
+              <td>89 - 80</td>
+              <td>3.56 - 3.20</td>
+              <td>A</td>
+              <td>89=3.56, 85=3.40, 80=3.20</td>
+            </tr>
+            <tr style="background-color: #e1f5fe;">
+              <td>79 - 70</td>
+              <td>3.16 - 2.80</td>
+              <td>B+</td>
+              <td>79=3.16, 75=3.00, 70=2.80</td>
+            </tr>
+            <tr style="background-color: #e3f2fd;">
+              <td>69 - 60</td>
+              <td>2.76 - 2.40</td>
+              <td>B</td>
+              <td>69=2.76, 65=2.60, 60=2.40</td>
+            </tr>
+            <tr style="background-color: #fff3e0;">
+              <td>59 - 50</td>
+              <td>2.36 - 2.00</td>
+              <td>C</td>
+              <td>59=2.36, 55=2.20, 50=2.00</td>
+            </tr>
+            <tr style="background-color: #fff8e1;">
+              <td>49 - 45</td>
+              <td>1.96 - 1.80</td>
+              <td>D</td>
+              <td>49=1.96, 47=1.88, 45=1.80</td>
+            </tr>
+            <tr style="background-color: #ffebee;">
+              <td>Below 45</td>
+              <td>&lt; 1.80</td>
+              <td>F</td>
+              <td>44=0.00, 40=0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box">
+        💡 <strong>Tip:</strong> Enter the GPA and credit hours for each semester you've completed. If this is your first semester, click "Skip to Current Semester" below.
+      </div>
+
+      <div class="table-container">
+        <table id="previousSemestersTable">
+          <thead>
+            <tr>
+              <th>Semester</th>
+              <th>GPA (0.00 - 4.00)</th>
+              <th>Credit Hours</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Rows will be added dynamically -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="button-container">
+        <button onclick="addPreviousSemester()" class="btn-tertiary">
+          <span>➕</span>
+          Add Semester
+        </button>
+      </div>
+
+      <div id="cgpaPreview" style="display:none;" class="result-section">
+        <h3>Your Current CGPA</h3>
+        <div class="gpa-display" id="calculatedCGPA">0.00</div>
+        <div class="combined-gpa">
+          Based on <span id="totalPreviousCredits">0</span> completed credit hours
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button class="btn-secondary" onclick="skipToCurrentSemester()">
+          Skip (First Semester)
+        </button>
+        <button class="btn-primary" onclick="validateAndGoToStep2()">
+          Next: Current Semester →
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 2: Current Semester -->
+    <div class="step-content" id="step2">
+      <h2 class="step-title">📝 Step 2: Project Your Current Semester</h2>
+      <p class="step-description">
+        Add your current semester subjects and enter either actual grades (if available) or projected grades for planning.
+      </p>
+
+      <div class="info-box">
+        💡 <strong>Strategy Mode:</strong> Try different grade scenarios to see how they affect your CGPA. This helps you prioritize which subjects need more focus!
+      </div>
+
+      <div class="help-section">
+        <details>
+          <summary style="font-weight:600;cursor:pointer;color:#3498db;display:flex;align-items:center;gap:5px;">
+            <span>❓</span> How to Use This Calculator 
+          </summary>
+          <div style="margin-top:10px;font-size:0.9rem;line-height:1.6;">
+            <h3 style="color:#2c3e50;font-size:1rem;margin-bottom:10px;border-bottom:1px solid #e0e0e0;padding-bottom:5px;">Plan Your Academic Success:</h3>
+            
+            <div style="display:grid;grid-template-columns:28px 1fr;gap:10px;margin-bottom:15px;align-items:center;">
+              <div style="background:#3498db;color:white;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;">1</div>
+              <div>
+                <strong>Calculate Existing CGPA</strong><br>
+                • Previous semester GPAs<br>
+                • Their credit hours<br>
+                <em style="color:#7f8c8d;font-size:0.8rem;">(This sets your academic baseline)</em>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:28px 1fr;gap:10px;margin-bottom:15px;align-items:center;">
+              <div style="background:#2ecc71;color:white;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;">2</div>
+              <div>
+                <strong>Project Current Semester</strong><br>
+                Add subjects and enter:<br>
+                • <span style="color:#e74c3c;">Real grades</span> (if available) OR<br>
+                • <span style="color:#2ecc71;">Projected grades</span> (for planning)<br>
+                <em style="color:#7f8c8d;font-size:0.8rem;">(Try different grade scenarios to see their impact)</em>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:center;">
+              <div style="background:#9b59b6;color:white;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;">3</div>
+              <div>
+                <strong>Optimize Your Strategy</strong><br>
+                Check the <span style="font-weight:600;color:#3498db;">Projected CGPA</span> in results and:<br>
+                • Identify which subjects need grade improvement<br>
+                • See how credit hours affect your CGPA<br>
+                <em style="color:#7f8c8d;font-size:0.8rem;">(Better planning → Better grades → Higher CGPA)</em>
+              </div>
+            </div>
+
+            <div style="margin-top:15px;background:#e8f4fd;padding:10px;border-radius:4px;border-left:3px solid #3498db;font-size:0.85rem;">
+              <strong>📊 Pro Tip:</strong> Use <button class="control-btn" style="padding:2px 8px;font-size:0.8rem;cursor:default;margin:0 3px;" disabled>Export PDF</button> to save different grade scenarios for comparison.
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <div class="controls-section">
+        <div class="import-export">
+          <label for="fileInput" class="file-label">
+            <span>📁</span>
+            Import Data
+          </label>
+          <input type="file" id="fileInput" class="file-input" accept=".json,.csv,application/json,text/csv">
+          <button onclick="exportPDF()" class="control-btn">
+            <span>📄</span>
+            Export PDF
+          </button>
+          <button onclick="exportCSV()" class="control-btn">
+            <span>📊</span>
+            Export CSV
+          </button>
+          <button onclick="clearAll()" class="file-label danger">
+            <span>🗑️</span>
+            Clear All
+          </button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table id="subjectTable">
+          <thead>
+            <tr>
+              <th>Subject</th>
+              <th>Grade (%)</th>
+              <th>Credit Hours</th>
+              <th>GPA Points</th>
+              <th>Letter Grade</th>
+              <th>Total Points</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Rows will be added dynamically -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="button-container">
+        <button class="btn-primary" onclick="addRow()">
+          <span>➕</span>
+          Add Subject (Ctrl+Shift+A)
+        </button>
+        <button class="btn-secondary" onclick="calculateSGPA()">
+          <span>📊</span>
+          Calculate SGPA
+        </button>
+        <button class="btn-tertiary" onclick="addSampleData()">
+          <span>📝</span>
+          Add Sample Data
+        </button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Total Subjects</h3>
+          <div class="value" id="totalSubjects">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Total Credits</h3>
+          <div class="value" id="totalCredits">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Average Grade</h3>
+          <div class="value" id="avgGrade">0%</div>
+        </div>
+        <div class="stat-card">
+          <h3>Current SGPA</h3>
+          <div class="value" id="currentSGPA">0.00</div>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button class="btn-secondary" onclick="goToStep(1)">
+          ← Back to Previous Semesters
+        </button>
+        <button class="btn-tertiary" onclick="calculateFinalResults()">
+          Calculate Final Results →
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 3: Results -->
+    <div class="step-content" id="step3">
+      <h2 class="step-title">🎯 Step 3: Your Academic Performance</h2>
+      <p class="step-description">
+        Here's a complete overview of your academic standing and projected performance.
+      </p>
+
+      <div class="result-section">
+        <h3>Your Academic Performance</h3>
+        <div class="gpa-display" id="gpaDisplay">0.00</div>
+        <div class="combined-gpa" id="combinedGPA" style="display: none;"></div>
+        
+        <div class="result-stats">
+          <div class="result-stat">
+            <div class="result-stat-label">Previous CGPA</div>
+            <div class="result-stat-value" id="finalPreviousCGPA">0.00</div>
+            <div style="font-size:0.7rem;color:#7f8c8d;">
+              <span id="finalPreviousCredits">0</span> credits
+            </div>
+          </div>
+          <div class="result-stat">
+            <div class="result-stat-label">Current SGPA</div>
+            <div class="result-stat-value" id="finalSGPA">0.00</div>
+            <div style="font-size:0.7rem;color:#7f8c8d;">
+              <span id="finalCurrentCredits">0</span> credits
+            </div>
+          </div>
+          <div class="result-stat">
+            <div class="result-stat-label">Total Credits</div>
+            <div class="result-stat-value" id="finalTotalCredits">0</div>
+          </div>
+          <div class="result-stat">
+            <div class="result-stat-label">Total Points</div>
+            <div class="result-stat-value" id="finalPoints">0.00</div>
+          </div>
+        </div>
+
+        <div class="result-section" style="margin-top:20px;background:#e8f5e9;border-color:#2ecc71;">
+          <h3 style="color:#27ae60;">🎓 Projected New CGPA</h3>
+          <div class="gpa-display" style="color:#27ae60;" id="finalProjectedCGPA">0.00</div>
+          <div class="combined-gpa">
+            Based on <span id="totalCombinedCredits">0</span> total credit hours
+          </div>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button class="btn-secondary" onclick="goToStep(2)">
+          ← Edit Current Semester
+        </button>
+        <button class="btn-primary" onclick="startOver()">
+          🔄 Start Over
+        </button>
+        <button class="btn-tertiary" onclick="exportPDF()">
+          📄 Export PDF Report
+        </button>
+      </div>
+    </div>
+
+    <!-- Semester CGPA Modal -->
+    <div id="semesterCGPAModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeSemesterModal()">&times;</span>
+        <h2>Calculate CGPA for Previous Semesters</h2>
+        <div class="table-container">
+          <table id="modalSemesterGPATable">
+            <thead>
+              <tr>
+                <th>Semester</th>
+                <th>GPA</th>
+                <th>Credits</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Rows will be added dynamically -->
+            </tbody>
+          </table>
+        </div>
+        <button onclick="addModalSemesterRow()" class="btn-tertiary" style="margin-top: 10px; width: 100%;">
+          ➕ Add Semester
+        </button>
+        <div id="modalSemesterCGPADisplay" style="margin: 10px 0; font-weight: 600; text-align: center;"></div>
+        <div id="modalSemesterError" style="color: #e74c3c; display: none; text-align: center;"></div>
+        <button onclick="applyModalSemesterCGPA()" class="btn-primary" style="width: 100%; margin-top: 10px;">
+          Apply CGPA
+        </button>
+        <button onclick="closeSemesterModal()" class="btn-secondary" style="width: 100%; margin-top: 5px;">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+  const { jsPDF } = window.jspdf;
+  let currentStep = 1;
+
+  // Exact GPA mapping with 0.04 discontinuity at grade boundaries
+  const exactGPAMapping = {
+    100: 4.00, 99: 3.96, 98: 3.92, 97: 3.88, 96: 3.84, 95: 3.80, 
+    94: 3.76, 93: 3.72, 92: 3.68, 91: 3.64, 90: 3.60, 
+    89: 3.56, 88: 3.52, 87: 3.48, 86: 3.44, 85: 3.40, 
+    84: 3.36, 83: 3.32, 82: 3.28, 81: 3.24, 80: 3.20,
+    79: 3.16, 78: 3.12, 77: 3.08, 76: 3.04, 75: 3.00,
+    74: 2.96, 73: 2.92, 72: 2.88, 71: 2.84, 70: 2.80,
+    69: 2.76, 68: 2.72, 67: 2.68, 66: 2.64, 65: 2.60,
+    64: 2.56, 63: 2.52, 62: 2.48, 61: 2.44, 60: 2.40,
+    59: 2.36, 58: 2.32, 57: 2.28, 56: 2.24, 55: 2.20,
+    54: 2.16, 53: 2.12, 52: 2.08, 51: 2.04, 50: 2.00,
+    49: 1.96, 48: 1.92, 47: 1.88, 46: 1.84, 45: 1.80
+  };
+
+  // GPA calculation logic using exact mapping
+  function getGPA(score) {
+    const roundedScore = Math.round(score);
+    
+    // Return exact value if in mapping
+    if (exactGPAMapping.hasOwnProperty(roundedScore)) {
+      return exactGPAMapping[roundedScore];
+    }
+    
+    // For scores below 45
+    if (score < 45) {
+      return 0.0;
+    }
+    
+    // For non-integer scores, interpolate between nearest integers
+    const lower = Math.floor(score);
+    const upper = Math.ceil(score);
+    
+    if (exactGPAMapping[lower] !== undefined && exactGPAMapping[upper] !== undefined) {
+      return exactGPAMapping[lower] + (exactGPAMapping[upper] - exactGPAMapping[lower]) * (score - lower);
+    }
+    
+    // Fallback formula (should not be needed for scores 45-100)
+    if (score >= 90) return 4.00 - (100 - score) * 0.04;
+    if (score >= 80) return 3.56 - (89 - score) * 0.04;
+    if (score >= 70) return 3.16 - (79 - score) * 0.04;
+    if (score >= 60) return 2.76 - (69 - score) * 0.04;
+    if (score >= 50) return 2.36 - (59 - score) * 0.04;
+    if (score >= 45) return 1.96 - (49 - score) * 0.04;
+    return 0.0;
+  }
+
+  function getLetterGrade(score) {
+    if (score >= 90) return 'A+';
+    if (score >= 80) return 'A';
+    if (score >= 70) return 'B+';
+    if (score >= 60) return 'B';
+    if (score >= 50) return 'C';
+    if (score >= 45) return 'D';
+    return 'F';
+  }
+
+  function getGradeClass(letter) {
+    switch (letter) {
+      case 'A+': return 'grade-a+';
+      case 'A': return 'grade-a';
+      case 'B+': return 'grade-b+';
+      case 'B': return 'grade-b';
+      case 'C': return 'grade-c';
+      case 'D': return 'grade-d';
+      case 'F': return 'grade-f';
+      default: return '';
+    }
+  }
+
+  function showToast(msg, color = "#2ecc71") {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.style.background = color;
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 2000);
+  }
+
+  // Step Navigation Functions
+  function goToStep(step) {
+    currentStep = step;
+    updateStepUI();
+  }
+
+  function updateStepUI() {
+    // Hide all steps
+    document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+    document.getElementById(`step${currentStep}`).classList.add('active');
+
+    // Update progress
+    document.querySelectorAll('.step').forEach(el => {
+      const stepNum = parseInt(el.dataset.step);
+      el.classList.remove('active', 'completed');
+      if (stepNum === currentStep) {
+        el.classList.add('active');
+      } else if (stepNum < currentStep) {
+        el.classList.add('completed');
+      }
+    });
+
+    // Update progress line
+    const progress = ((currentStep - 1) / 2) * 100;
+    document.getElementById('progressLine').style.width = progress + '%';
+
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Step 1 Functions
+  function addPreviousSemester() {
+    const tbody = document.querySelector('#previousSemestersTable tbody');
+    const rowCount = tbody.rows.length + 1;
+    const row = tbody.insertRow();
+    row.innerHTML = `
+      <td>Semester ${rowCount}</td>
+      <td><input type="number" min="0" max="4" step="0.01" class="sem-gpa" placeholder="e.g., 3.50"></td>
+      <td><input type="number" min="0" step="0.5" class="sem-credits" placeholder="e.g., 18"></td>
+      <td><button onclick="this.closest('tr').remove(); updatePreviousSemesterNumbers(); calculatePreviousCGPA();" class="delete-btn">×</button></td>
+    `;
+    row.querySelectorAll('input').forEach(input => {
+      input.addEventListener('input', calculatePreviousCGPA);
+    });
+    calculatePreviousCGPA();
+    showToast("Semester added");
+  }
+
+  function updatePreviousSemesterNumbers() {
+    const rows = document.querySelectorAll('#previousSemestersTable tbody tr');
+    rows.forEach((row, idx) => {
+      row.cells[0].textContent = `Semester ${idx + 1}`;
+    });
+  }
+
+  function calculatePreviousCGPA() {
+    const rows = document.querySelectorAll('#previousSemestersTable tbody tr');
+    let totalPoints = 0;
+    let totalCredits = 0;
+
+    rows.forEach(row => {
+      const gpa = parseFloat(row.querySelector('.sem-gpa').value) || 0;
+      const credits = parseFloat(row.querySelector('.sem-credits').value) || 0;
+      totalPoints += gpa * credits;
+      totalCredits += credits;
+    });
+
+    if (totalCredits > 0) {
+      const cgpa = totalPoints / totalCredits;
+      document.getElementById('calculatedCGPA').textContent = cgpa.toFixed(2);
+      document.getElementById('totalPreviousCredits').textContent = totalCredits.toFixed(1);
+      document.getElementById('cgpaPreview').style.display = 'block';
+      
+      // Save to localStorage for use in step 2
+      localStorage.setItem('calculatedCGPA', cgpa.toFixed(2));
+      localStorage.setItem('totalPreviousCredits', totalCredits.toFixed(1));
+    } else {
+      document.getElementById('cgpaPreview').style.display = 'none';
+    }
+  }
+
+  function validateAndGoToStep2() {
+    const rows = document.querySelectorAll('#previousSemestersTable tbody tr');
+    if (rows.length > 0) {
+      let hasEmpty = false;
+      rows.forEach(row => {
+        const gpa = row.querySelector('.sem-gpa').value;
+        const credits = row.querySelector('.sem-credits').value;
+        if (!gpa || !credits) hasEmpty = true;
+      });
+      if (hasEmpty) {
+        showToast("Please fill all semester fields or remove empty rows", "#e74c3c");
+        return;
+      }
+    }
+    goToStep(2);
+  }
+
+  function skipToCurrentSemester() {
+    // Clear any existing data
+    document.querySelector('#previousSemestersTable tbody').innerHTML = '';
+    document.getElementById('cgpaPreview').style.display = 'none';
+    localStorage.removeItem('calculatedCGPA');
+    localStorage.removeItem('totalPreviousCredits');
+    
+    // Go to step 2
+    goToStep(2);
+    showToast("Starting with first semester");
+  }
+
+  // Step 2 Functions
+  function addRow() {
+    const table = document.getElementById('subjectTable').getElementsByTagName('tbody')[0];
+    const newRow = table.insertRow();
+    newRow.innerHTML = `
+      <td data-label="Subject"><input type="text" name="subject" placeholder="Enter subject name" required></td>
+      <td data-label="Grade"><input type="number" name="grade" min="0" max="100" placeholder="0-100" required></td>
+      <td data-label="Credits"><input type="number" name="credit" min="0" step="0.5" placeholder="Credit hours" required></td>
+      <td data-label="GPA Points" class="points">0.00</td>
+      <td data-label="Letter Grade" class="letter-grade">-</td>
+      <td data-label="Total Points" class="total-points">0.00</td>
+      <td data-label="Action"><button class="delete-btn" onclick="deleteRow(this)" title="Delete row">×</button></td>
+    `;
+    attachEventListeners(newRow);
+    assignDataLabels();
+    updateRowCalculations();
+    newRow.querySelector('input[name="subject"]').focus();
+    showToast("New subject row added");
+  }
+
+  function deleteRow(button) {
+    if (!confirm("Delete this subject row?")) return;
+    const row = button.closest('tr');
+    row.remove();
+    updateRowCalculations();
+    showToast("Subject row deleted", "#e74c3c");
+  }
+
+  function attachEventListeners(row) {
+    const inputs = row.querySelectorAll('input');
+    inputs.forEach(input => {
+      input.addEventListener('input', updateRowCalculations);
+    });
+  }
+
+  function updateRowCalculations() {
+    const rows = document.querySelectorAll('#subjectTable tbody tr');
+    const subjects = [];
+    rows.forEach(row => {
+      const subjectInput = row.querySelector('input[name="subject"]');
+      const subject = subjectInput.value.trim();
+      if (subject && subjects.includes(subject)) {
+        subjectInput.style.borderColor = "#e74c3c";
+        subjectInput.title = "Duplicate subject name!";
+      } else {
+        subjectInput.style.borderColor = "";
+        subjectInput.title = "";
+        if (subject) subjects.push(subject);
+      }
+      const grade = parseFloat(row.querySelector('input[name="grade"]').value) || 0;
+      const credit = parseFloat(row.querySelector('input[name="credit"]').value) || 0;
+      const gpa = getGPA(grade);
+      const points = gpa * credit;
+      const letter = getLetterGrade(grade);
+      row.querySelector('.points').textContent = gpa.toFixed(2);
+      row.querySelector('.letter-grade').innerHTML =
+        `<span class="grade-display ${getGradeClass(letter)}">${letter}</span>`;
+      row.querySelector('.total-points').textContent = points.toFixed(2);
+      row.querySelectorAll('input').forEach(input => {
+        if (input.hasAttribute('required') && !input.value) {
+          input.style.borderColor = "#e67e22";
+        } else {
+          input.style.borderColor = "";
+        }
+      });
+    });
+    updateStats();
+    saveData();
+  }
+
+  function updateStats() {
+    const rows = document.querySelectorAll('#subjectTable tbody tr');
+    let totalSubjects = 0;
+    let totalCredits = 0;
+    let totalGradeSum = 0;
+    let totalPoints = 0;
+    let validSubjects = 0;
+    rows.forEach(row => {
+      const grade = parseFloat(row.querySelector('input[name="grade"]').value) || 0;
+      const credit = parseFloat(row.querySelector('input[name="credit"]').value) || 0;
+      const subject = row.querySelector('input[name="subject"]').value.trim();
+      if (subject) {
+        totalSubjects++;
+        if (grade > 0) {
+          totalGradeSum += grade;
+          validSubjects++;
+        }
+      }
+      totalCredits += credit;
+      totalPoints += getGPA(grade) * credit;
+    });
+    document.getElementById('totalSubjects').textContent = totalSubjects;
+    document.getElementById('totalCredits').textContent = totalCredits.toFixed(1);
+    document.getElementById('avgGrade').textContent =
+      validSubjects > 0 ? (totalGradeSum / validSubjects).toFixed(1) + '%' : '0%';
+    const sgpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : '0.00';
+    document.getElementById('currentSGPA').textContent = sgpa;
+    document.getElementById('gpaDisplay').textContent = sgpa;
+  }
+
+  function calculateSGPA() {
+    updateRowCalculations();
+    showToast("SGPA calculated successfully", "#3498db");
+  }
+
+  function calculateFinalResults() {
+    const rows = document.querySelectorAll('#subjectTable tbody tr');
+    
+    // Validation
+    if (rows.length === 0) {
+      showToast("Please add at least one subject", "#e74c3c");
+      return;
+    }
+    
+    let hasEmpty = false;
+    rows.forEach(row => {
+      const subject = row.querySelector('input[name="subject"]').value.trim();
+      const grade = row.querySelector('input[name="grade"]').value;
+      const credits = row.querySelector('input[name="credit"]').value;
+      
+      if (!subject || grade === "" || credits === "") {
+        hasEmpty = true;
+        if (!subject) row.querySelector('input[name="subject"]').style.borderColor = "#e74c3c";
+        if (grade === "") row.querySelector('input[name="grade"]').style.borderColor = "#e74c3c";
+        if (credits === "") row.querySelector('input[name="credit"]').style.borderColor = "#e74c3c";
+      }
+    });
+    
+    if (hasEmpty) {
+      showToast("Please fill all subject fields", "#e74c3c");
+      return;
+    }
+    
+    // Calculate current semester data
+    let currentPoints = 0;
+    let currentCredits = 0;
+    let currentGradeSum = 0;
+    let subjectCount = 0;
+    
+    rows.forEach(row => {
+      const subject = row.querySelector('input[name="subject"]').value.trim();
+      if (!subject) return;
+      const grade = parseFloat(row.querySelector('input[name="grade"]').value) || 0;
+      const credit = parseFloat(row.querySelector('input[name="credit"]').value) || 0;
+      const gpa = getGPA(grade);
+      currentPoints += gpa * credit;
+      currentCredits += credit;
+      if (grade > 0) {
+        currentGradeSum += grade;
+        subjectCount++;
+      }
+    });
+    
+    const sgpa = currentCredits > 0 ? currentPoints / currentCredits : 0;
+    
+    // Get previous semester data
+    const savedCGPA = localStorage.getItem('calculatedCGPA') || "0.00";
+    const savedCredits = localStorage.getItem('totalPreviousCredits') || "0";
+    const previousCGPA = parseFloat(savedCGPA);
+    const previousCredits = parseFloat(savedCredits);
+    
+    // Calculate projected CGPA
+    let projectedCGPA = sgpa;
+    if (previousCredits > 0) {
+      projectedCGPA = ((previousCGPA * previousCredits) + (sgpa * currentCredits)) / (previousCredits + currentCredits);
+    }
+    
+    // Update the results display
+    document.getElementById('finalPreviousCGPA').textContent = previousCGPA.toFixed(2);
+    document.getElementById('finalPreviousCredits').textContent = previousCredits.toFixed(1);
+    document.getElementById('finalSGPA').textContent = sgpa.toFixed(2);
+    document.getElementById('finalCurrentCredits').textContent = currentCredits.toFixed(1);
+    document.getElementById('finalTotalCredits').textContent = (previousCredits + currentCredits).toFixed(1);
+    document.getElementById('finalPoints').textContent = (previousCGPA * previousCredits + currentPoints).toFixed(2);
+    document.getElementById('finalProjectedCGPA').textContent = projectedCGPA.toFixed(2);
+    document.getElementById('totalCombinedCredits').textContent = (previousCredits + currentCredits).toFixed(1);
+    
+    // Update the main GPA display
+    document.getElementById('gpaDisplay').textContent = projectedCGPA.toFixed(2);
+    
+    // Show combined GPA message
+    const combinedElement = document.getElementById('combinedGPA');
+    if (previousCredits > 0) {
+      combinedElement.textContent = `Combined CGPA: ${projectedCGPA.toFixed(2)}`;
+      combinedElement.style.display = 'block';
+    } else {
+      combinedElement.textContent = `Current Semester SGPA: ${sgpa.toFixed(2)}`;
+      combinedElement.style.display = 'block';
+    }
+    
+    // Go to step 3
+    goToStep(3);
+    showToast("Final results calculated!", "#2ecc71");
+  }
+
+  function addSampleData() {
+    const sampleData = [
+      ['Oral Anatomy', 92, 3],
+      ['Dental Physiology', 85, 3],
+      ['Biochemistry', 78, 2],
+      ['Dental Histology', 88, 2],
+      ['Dental Materials', 76, 2],
+      ['Oral Pathology', 82, 2],
+      ['Pharmacology', 79, 2],
+      ['Microbiology', 91, 2]
+    ];
+    const tbody = document.getElementById('subjectTable').getElementsByTagName('tbody')[0];
+    tbody.innerHTML = '';
+    sampleData.forEach(([subject, grade, credit]) => {
+      const newRow = tbody.insertRow();
+      newRow.innerHTML = `
+        <td data-label="Subject"><input type="text" name="subject" value="${subject}"></td>
+        <td data-label="Grade"><input type="number" name="grade" value="${grade}"></td>
+        <td data-label="Credits"><input type="number" name="credit" value="${credit}"></td>
+        <td data-label="GPA Points" class="points">0.00</td>
+        <td data-label="Letter Grade" class="letter-grade">-</td>
+        <td data-label="Total Points" class="total-points">0.00</td>
+        <td data-label="Action"><button class="delete-btn" onclick="deleteRow(this)">×</button></td>
+      `;
+      attachEventListeners(newRow);
+    });
+    assignDataLabels();
+    updateRowCalculations();
+    showToast("Sample data added with new grading system");
+  }
+
+  function exportPDF() {
+    const rows = document.querySelectorAll('#subjectTable tbody tr');
+    if (rows.length === 0) {
+      alert('No data to export!');
+      return;
+    }
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.setTextColor(40, 40, 40);
+    doc.text('University of Khartoum - GPA Report', 105, 15, { align: 'center' });
+    doc.setFontSize(12);
+    doc.text('Faculty of Dentistry', 105, 22, { align: 'center' });
+    doc.text('Grading System with 0.04 Discontinuity', 105, 28, { align: 'center' });
+    const today = new Date();
+    doc.setFontSize(10);
+    doc.text(`Generated on: ${today.toLocaleDateString()}`, 105, 35, { align: 'center' });
+    
+    // Include previous CGPA if available
+    const savedCGPA = localStorage.getItem('calculatedCGPA');
+    const savedCredits = localStorage.getItem('totalPreviousCredits');
+    if (savedCGPA && savedCredits) {
+      doc.setFontSize(12);
+      doc.text(`Previous CGPA: ${savedCGPA} (${savedCredits} credits)`, 14, 45);
+    }
+    
+    // Include current SGPA
+    const sgpa = document.getElementById('gpaDisplay').textContent;
+    doc.setFontSize(12);
+    doc.text(`Current Semester SGPA: ${sgpa}`, 14, 55);
+    
+    // Include projected CGPA if available
+    const projectedCGPA = document.getElementById('finalProjectedCGPA').textContent;
+    if (projectedCGPA !== "0.00") {
+      doc.setFontSize(12);
+      doc.text(`Projected CGPA: ${projectedCGPA}`, 14, 65);
+    }
+    
+    const headers = [
+      "Subject", "Grade (%)", "Credit Hours", "GPA Points", "Letter Grade", "Total Points"
+    ];
+    const rowsData = [];
+    document.querySelectorAll('#subjectTable tbody tr').forEach(row => {
+      const subject = row.querySelector('input[name="subject"]').value.trim();
+      if (subject) {
+        rowsData.push([
+          subject,
+          row.querySelector('input[name="grade"]').value || '0',
+          row.querySelector('input[name="credit"]').value || '0',
+          row.querySelector('.points').textContent,
+          row.querySelector('.letter-grade').textContent,
+          row.querySelector('.total-points').textContent
+        ]);
+      }
+    });
+    
+    const startY = projectedCGPA !== "0.00" ? 75 : 65;
+    doc.autoTable({
+      head: [headers],
+      body: rowsData,
+      startY: startY,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [248, 249, 250],
+        textColor: [44, 62, 80],
+        fontStyle: 'bold'
+      },
+      alternateRowStyles: {
+        fillColor: [248, 249, 250]
+      }
+    });
+    
+    const finalY = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Grading System: 0.04 discontinuity | Created by Khalid Omer B49', 105, finalY, { align: 'center' });
+    doc.save('gpa_report_new_system.pdf');
+    showToast("PDF exported with new grading system");
+  }
+
+  function exportCSV() {
+    const rows = document.querySelectorAll('#subjectTable tbody tr');
+    
+    // Create headers
+    let csv = 'Subject,Grade (%),Credit Hours,GPA Points,Letter Grade\n';
+    
+    rows.forEach(row => {
+      const subject = row.querySelector('input[name="subject"]').value.trim();
+      const grade = row.querySelector('input[name="grade"]').value || '0';
+      const credit = row.querySelector('input[name="credit"]').value || '0';
+      const points = row.querySelector('.points').textContent;
+      const letter = row.querySelector('.letter-grade').textContent;
+      
+      if (subject) {
+        // Escape quotes in subject names
+        const escapedSubject = subject.includes(',') ? `"${subject}"` : subject;
+        csv += `${escapedSubject},${grade},${credit},${points},${letter}\n`;
+      }
+    });
+    
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'gpa_data.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast("CSV exported successfully");
+  }
+
+  function clearAll() {
+    if (confirm('Are you sure you want to clear all data?')) {
+      const tbody = document.getElementById('subjectTable').getElementsByTagName('tbody')[0];
+      tbody.innerHTML = '';
+      addRow();
+      document.getElementById('cgpaPreview').style.display = 'none';
+      document.getElementById('previousSemestersTable').querySelector('tbody').innerHTML = '';
+      localStorage.removeItem('calculatedCGPA');
+      localStorage.removeItem('totalPreviousCredits');
+      updateRowCalculations();
+      showToast("All data cleared", "#e74c3c");
+    }
+  }
+
+  function saveData() {
+    try {
+      const rows = document.querySelectorAll('#subjectTable tbody tr');
+      const data = [];
+      rows.forEach(row => {
+        data.push({
+          subject: row.querySelector('input[name="subject"]').value,
+          grade: row.querySelector('input[name="grade"]').value,
+          credit: row.querySelector('input[name="credit"]').value
+        });
+      });
+      localStorage.setItem('gpaData', JSON.stringify(data));
+    } catch (e) {
+      showToast("Could not save data to local storage", "#e74c3c");
+    }
+  }
+
+  function loadData() {
+    const savedData = localStorage.getItem('gpaData');
+    if (savedData) {
+      const data = JSON.parse(savedData);
+      const tbody = document.querySelector('#subjectTable tbody');
+      tbody.innerHTML = '';
+      data.forEach(item => {
+        const row = tbody.insertRow();
+        row.innerHTML = `
+          <td data-label="Subject"><input type="text" name="subject" value="${item.subject}"></td>
+          <td data-label="Grade"><input type="number" name="grade" value="${item.grade}"></td>
+          <td data-label="Credits"><input type="number" name="credit" value="${item.credit}"></td>
+          <td data-label="GPA Points" class="points">0.00</td>
+          <td data-label="Letter Grade" class="letter-grade">-</td>
+          <td data-label="Total Points" class="total-points">0.00</td>
+          <td data-label="Action"><button class="delete-btn" onclick="deleteRow(this)">×</button></td>
+        `;
+        attachEventListeners(row);
+      });
+      assignDataLabels();
+      updateRowCalculations();
+    } else {
+      addRow();
+    }
+  }
+
+  function assignDataLabels() {
+    const headers = ['Subject', 'Grade (%)', 'Credit Hours', 'GPA Points', 'Letter Grade', 'Total Points', 'Action'];
+    document.querySelectorAll('#subjectTable tbody tr').forEach(row => {
+      row.querySelectorAll('td').forEach((td, i) => {
+        td.setAttribute('data-label', headers[i]);
+      });
+    });
+  }
+
+  function startOver() {
+    if (confirm('Are you sure you want to start over? All data will be cleared.')) {
+      // Clear all data
+      localStorage.removeItem('gpaData');
+      localStorage.removeItem('calculatedCGPA');
+      localStorage.removeItem('totalPreviousCredits');
+      
+      // Clear tables
+      document.querySelector('#subjectTable tbody').innerHTML = '';
+      document.querySelector('#previousSemestersTable tbody').innerHTML = '';
+      
+      // Reset to step 1
+      currentStep = 1;
+      updateStepUI();
+      
+      // Add initial row
+      addRow();
+      showToast("Started over", "#3498db");
+    }
+  }
+
+  // Modal Functions
+  function openSemesterModal() {
+    const modal = document.getElementById('semesterCGPAModal');
+    modal.style.display = 'flex';
+    
+    // Clear previous data
+    const tbody = document.querySelector('#modalSemesterGPATable tbody');
+    tbody.innerHTML = '';
+    
+    // Add initial row
+    addModalSemesterRow();
+    
+    // Focus first input
+    setTimeout(() => {
+      const firstInput = modal.querySelector('input');
+      if (firstInput) firstInput.focus();
+    }, 100);
+  }
+
+  function closeSemesterModal() {
+    document.getElementById('semesterCGPAModal').style.display = 'none';
+  }
+
+  function addModalSemesterRow() {
+    const tbody = document.getElementById('modalSemesterGPATable').querySelector('tbody');
+    const rowCount = tbody.rows.length + 1;
+    const row = tbody.insertRow();
+    row.innerHTML = `
+      <td>Semester ${rowCount}</td>
+      <td><input type="number" min="0" max="4" step="0.01" class="sem-gpa" placeholder="GPA"></td>
+      <td><input type="number" min="0" step="0.5" class="sem-credits" placeholder="Credits"></td>
+      <td><button onclick="this.closest('tr').remove(); updateModalSemesterNumbers(); calculateModalSemesterCGPA();" class="delete-btn" title="Delete Semester">×</button></td>
+    `;
+    row.querySelectorAll('input').forEach(input => {
+      input.addEventListener('input', calculateModalSemesterCGPA);
+    });
+    calculateModalSemesterCGPA();
+    updateModalSemesterNumbers();
+  }
+
+  function updateModalSemesterNumbers() {
+    const rows = document.querySelectorAll('#modalSemesterGPATable tbody tr');
+    rows.forEach((row, idx) => {
+      row.cells[0].textContent = `Semester ${idx + 1}`;
+    });
+  }
+
+  function calculateModalSemesterCGPA() {
+    const rows = document.querySelectorAll('#modalSemesterGPATable tbody tr');
+    let totalPoints = 0;
+    let totalCredits = 0;
+    let hasError = false;
+    let errorMsg = "";
+    rows.forEach(row => {
+      const gpaInput = row.querySelector('.sem-gpa');
+      const creditsInput = row.querySelector('.sem-credits');
+      const gpa = parseFloat(gpaInput.value);
+      const credits = parseFloat(creditsInput.value);
+      if (gpaInput.value && (gpa < 0 || gpa > 4)) {
+        gpaInput.style.borderColor = "#e74c3c";
+        hasError = true;
+        errorMsg = "GPA must be between 0 and 4.";
+      } else {
+        gpaInput.style.borderColor = "";
+      }
+      if (creditsInput.value && credits < 0) {
+        creditsInput.style.borderColor = "#e74c3c";
+        hasError = true;
+        errorMsg = "Credits must be positive.";
+      } else {
+        creditsInput.style.borderColor = "";
+      }
+      if (!isNaN(gpa) && !isNaN(credits)) {
+        totalPoints += gpa * credits;
+        totalCredits += credits;
+      }
+    });
+    const cgpaDisplay = document.getElementById('modalSemesterCGPADisplay');
+    const errorDisplay = document.getElementById('modalSemesterError');
+    if (hasError) {
+      errorDisplay.textContent = errorMsg;
+      errorDisplay.style.display = "block";
+      cgpaDisplay.textContent = "";
+    } else {
+      errorDisplay.style.display = "none";
+      cgpaDisplay.textContent = totalCredits > 0 ? `Calculated CGPA: ${(totalPoints / totalCredits).toFixed(2)}` : '';
+    }
+  }
+
+  function applyModalSemesterCGPA() {
+    const rows = document.querySelectorAll('#modalSemesterGPATable tbody tr');
+    let totalPoints = 0;
+    let totalCredits = 0;
+    let hasEmpty = false;
+    
+    rows.forEach(row => {
+      const gpaInput = row.querySelector('.sem-gpa');
+      const creditsInput = row.querySelector('.sem-credits');
+      const gpa = parseFloat(gpaInput.value);
+      const credits = parseFloat(creditsInput.value);
+      
+      if (!gpaInput.value || !creditsInput.value) {
+        hasEmpty = true;
+        gpaInput.style.borderColor = "#e74c3c";
+        creditsInput.style.borderColor = "#e74c3c";
+      } else if (gpa < 0 || gpa > 4) {
+        hasEmpty = true;
+        gpaInput.style.borderColor = "#e74c3c";
+      } else {
+        gpaInput.style.borderColor = "";
+        creditsInput.style.borderColor = "";
+        totalPoints += gpa * credits;
+        totalCredits += credits;
+      }
+    });
+    
+    if (hasEmpty) {
+      document.getElementById('modalSemesterError').textContent = "Please fill all fields with valid values (GPA: 0-4)";
+      document.getElementById('modalSemesterError').style.display = "block";
+      return;
+    }
+    
+    if (totalCredits > 0) {
+      const cgpa = (totalPoints / totalCredits).toFixed(2);
+      
+      // Update the main table
+      const mainTbody = document.querySelector('#previousSemestersTable tbody');
+      mainTbody.innerHTML = '';
+      
+      rows.forEach((row, index) => {
+        const gpa = parseFloat(row.querySelector('.sem-gpa').value);
+        const credits = parseFloat(row.querySelector('.sem-credits').value);
+        
+        const newRow = mainTbody.insertRow();
+        newRow.innerHTML = `
+          <td>Semester ${index + 1}</td>
+          <td><input type="number" min="0" max="4" step="0.01" class="sem-gpa" value="${gpa.toFixed(2)}"></td>
+          <td><input type="number" min="0" step="0.5" class="sem-credits" value="${credits}"></td>
+          <td><button onclick="this.closest('tr').remove(); updatePreviousSemesterNumbers(); calculatePreviousCGPA();" class="delete-btn">×</button></td>
+        `;
+        
+        // Add event listeners
+        newRow.querySelectorAll('input').forEach(input => {
+          input.addEventListener('input', calculatePreviousCGPA);
+        });
+      });
+      
+      // Update CGPA display
+      calculatePreviousCGPA();
+      
+      // Close modal
+      closeSemesterModal();
+      showToast("Previous semesters added successfully!");
+    }
+  }
+
+  // Event Listeners
+  document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a') {
+      e.preventDefault();
+      addRow();
+    }
+  });
+
+  document.getElementById('fileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      const content = event.target.result;
+      const fileName = file.name.toLowerCase();
+      
+      try {
+        if (fileName.endsWith('.csv')) {
+          // Handle CSV import
+          importCSVData(content);
+        } else if (fileName.endsWith('.json')) {
+          // Handle JSON import
+          importJSONData(content);
+        } else {
+          showToast('Please select a .json or .csv file', '#e74c3c');
+          return;
+        }
+        
+        // Clear the file input so same file can be selected again
+        e.target.value = '';
+        
+      } catch (error) {
+        console.error('Import error:', error);
+        showToast('Error importing file. Please check the format.', '#e74c3c');
+      }
+    };
+    
+    reader.readAsText(file);
+  });
+
+  // CSV Import Function
+  function importCSVData(csvContent) {
+    const lines = csvContent.split('\n').filter(line => line.trim() !== '');
+    if (lines.length < 2) {
+      throw new Error('CSV file is empty or has no data');
+    }
+    
+    // Parse headers
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+    
+    // Find column indices
+    const subjectIndex = headers.findIndex(h => h.includes('subject') || h.includes('name'));
+    const gradeIndex = headers.findIndex(h => h.includes('grade') || h.includes('score') || h.includes('%') || h.includes('mark'));
+    const creditIndex = headers.findIndex(h => h.includes('credit') || h.includes('hours') || h.includes('unit') || h.includes('ch'));
+    
+    if (subjectIndex === -1) {
+      throw new Error('CSV must contain a "Subject" column');
+    }
+    
+    const gpaData = [];
+    
+    // Process data rows
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i];
+      const values = line.split(',').map(v => v.trim());
+      
+      const subject = values[subjectIndex] || `Subject ${i}`;
+      const grade = parseFloat(values[gradeIndex]) || 0;
+      const credit = parseFloat(values[creditIndex]) || 0;
+      
+      gpaData.push({
+        subject: subject,
+        grade: grade.toString(),
+        credit: credit.toString()
+      });
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('gpaData', JSON.stringify(gpaData));
+    
+    // Load the data
+    loadData();
+    goToStep(2);
+    showToast(`Imported ${gpaData.length} subjects from CSV`, '#2ecc71');
+  }
+
+  // JSON Import Function
+  function importJSONData(jsonContent) {
+    const parsed = JSON.parse(jsonContent);
+    let gpaData = [];
+    
+    // Check different possible JSON structures
+    if (Array.isArray(parsed)) {
+      // Format 1: Direct array of subjects
+      gpaData = parsed.map(item => ({
+        subject: item.subject || item.name || item.Subject || 'Unnamed Subject',
+        grade: item.grade || item.Grade || item.score || 0,
+        credit: item.credit || item.Credit || item.hours || item.credits || 0
+      }));
+    } else if (parsed.gpaData && Array.isArray(parsed.gpaData)) {
+      // Format 2: Object with gpaData array
+      gpaData = parsed.gpaData.map(item => ({
+        subject: item.subject || item.name || 'Unnamed Subject',
+        grade: item.grade || 0,
+        credit: item.credit || 0
+      }));
+      
+      // Store previous semester data if available
+      if (parsed.currentCGPA) {
+        localStorage.setItem('calculatedCGPA', parsed.currentCGPA.toString());
+      }
+      if (parsed.totalCompletedCredits) {
+        localStorage.setItem('totalPreviousCredits', parsed.totalCompletedCredits.toString());
+      }
+    } else if (parsed.subjects && Array.isArray(parsed.subjects)) {
+      // Format 3: Object with subjects array
+      gpaData = parsed.subjects.map(item => ({
+        subject: item.subject || item.name || 'Unnamed Subject',
+        grade: item.grade || 0,
+        credit: item.credit || 0
+      }));
+    } else {
+      throw new Error('Unsupported JSON format');
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('gpaData', JSON.stringify(gpaData));
+    
+    // Load the data
+    loadData();
+    goToStep(2);
+    showToast(`Imported ${gpaData.length} subjects from JSON`, '#2ecc71');
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    loadData();
+    updateStepUI();
+    
+    // Load previous CGPA if exists
+    const savedCGPA = localStorage.getItem('calculatedCGPA');
+    const savedCredits = localStorage.getItem('totalPreviousCredits');
+    if (savedCGPA && savedCredits) {
+      // Add rows to previous semesters table
+      const tbody = document.querySelector('#previousSemestersTable tbody');
+      tbody.innerHTML = `<tr>
+        <td>Semester 1</td>
+        <td><input type="number" min="0" max="4" step="0.01" class="sem-gpa" value="${savedCGPA}"></td>
+        <td><input type="number" min="0" step="0.5" class="sem-credits" value="${savedCredits}"></td>
+        <td><button onclick="this.closest('tr').remove(); updatePreviousSemesterNumbers(); calculatePreviousCGPA();" class="delete-btn">×</button></td>
+      </tr>`;
+      
+      // Add event listeners
+      tbody.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', calculatePreviousCGPA);
+      });
+      
+      calculatePreviousCGPA();
+    }
+    
+    // Close modal when clicking outside
+    document.getElementById('semesterCGPAModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeSemesterModal();
+      }
+    });
+    
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && document.getElementById('semesterCGPAModal').style.display === 'flex') {
+        closeSemesterModal();
+      }
+    });
+  });
+  </script>
+</body>
+</html>
